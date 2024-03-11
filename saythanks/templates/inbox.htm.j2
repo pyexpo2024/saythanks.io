@@ -1,0 +1,145 @@
+{% extends "base.htm.j2" %}
+
+{% block title %}Say Thank You{% endblock %}
+
+{% block content %}
+
+<form action="./logout" method="POST">
+<button type="submit" class="logoutLblPos" >Log Out</button>
+</form>
+
+<input type="hidden" id="username" value={{user['nickname']}}>
+
+<div id="badge-modal" style="display:none;">
+    <h4>The <strong>‘</strong><a>Say Thanks</a><strong>’</strong> badge<span class="green"><strong>.</strong></span></h4>
+    <select class="u-full-width" id="badge-format">
+        <option value="imageurl">Image URL</option>
+        <option value="markdown">Markdown</option>
+        <option value="rst">RST</option>
+    </select>
+    <textarea onclick="this.select()" class="u-full-width" id="badgeCode">https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg</textarea>
+</div>
+
+<img class="avatar" style="border-radius: 50%;" src="{{user['picture']}}"/ width=100px;>
+<h2>Welcome, {{ user['name'] }}!</h2>
+
+<p>
+    You may now direct your users (in a README or documentation, for example)
+    to <a href="{{ url_for('display_submit_note', inbox=user['nickname'])}}">this URL</a>, where they can submit a note of thankfulness:
+</p>
+<hr>
+
+<div class="sixteen columns">
+
+  <div class="two columns" style="margin-top: 0.5em;">
+
+  <p ><strong>Buttons & Links:</strong></p>
+  </div>
+
+  <div class="three columns">
+  <a href="{{ url_for('display_submit_note', inbox=user['nickname'])}}">
+      <button class="button">
+          Say Thanks!
+      </button>
+  </a>
+  </div>
+
+  
+  <div class="three columns" style="margin-top: 0.5em;">
+  <a href="#badge-modal" rel="modal:open">
+      <img src="https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg" />
+  </a>
+  </div>
+
+  <div style="margin-top: 0.5em;">
+  <a href="{{ url_for('display_submit_note', inbox=user['nickname'])}}">
+      Say Thanks!
+  </a>
+  </div>
+
+  <div style="text-align: right; margin-top: -3em; ">  
+     <img src="{{ qrcode(request.base_url[0:-6] + url_for('display_submit_note', inbox=user['nickname']))}}" width="100px">
+  </div>
+
+</div>
+
+<hr>
+
+<hr>
+
+<hr>
+<p style="text-align: center;">
+  <h3>Notes of Thankfulness:</h3>
+</p>
+
+<form action="/inbox" method="POST">
+  <input type="text" style="font-size:14px" size=28 placeholder="Search by message body or byline" name="search_str">
+    <button style="font-size:10px" type="submit">Search</button>
+</form>
+<table>
+  <thead>
+    <tr>
+      <th id="share">Share URL</th>
+      <th id="message">Message</th>
+      <th id="from">From</th>
+      <th id="timestamp">Timestamp</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for note in notes %}
+    <tr>
+      <td class="ellipsis">
+        <span>
+          <a class="share" href="{{ url_for('share_note', uuid=note.uuid)}}">🔗</a>
+          <a class="twitter-share-button" target="_blank" href="https://twitter.com/intent/tweet?text={{ note.body|quote + "%0A%0A- " + note.byline + "%0A%0A" + request.base_url[0:-6] + url_for('share_note', uuid=note.uuid) + "%0A" }}" data-url=" "></a> </br>
+          <iframe src="https://www.facebook.com/plugins/share_button.php?href={{ request.base_url[0:-6] + url_for('share_note', uuid=note.uuid) }}&layout=button&size=small&width=67&height=20&appId" width="67" height="20" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share">
+          </iframe> 
+        </span>  
+      </td>
+      
+      <td class="ellipsis"><a href="{{ url_for('share_note', uuid=note.uuid)}}"><span>{{ note.body }}</span></a></td> 
+      <td class="ellipsis"><span>— {{ note.byline }}</span></td>
+      <td class="ellipsis">{{  note.timestamp.strftime('%d-%h-%Y %H:%M:%S') }}</td>
+      <td class="ellipsis"><strong><a class="share" href="{{ url_for('archive_note', uuid=note.uuid)}}">♻</a></strong></td>
+    </tr>
+  {% endfor %}
+
+    <tr>
+      <td></td>
+      <td>Thanks for using SayThanks.io! :)</td>
+      <td>Kenneth Reitz & Team</td>
+      <td></td>
+      <td></td>
+    </tr>
+  </tbody>
+</table>
+
+<h4>Manage your Inbox:</h4>
+
+<p>Below are some rudimentary account management tools, available, to you, today, for free!</p>
+<ul>
+  <li><a href="{{ url_for('archived_inbox') }}">Archived notes</a>.</li>
+  <li>Export your inbox!
+    <a href="{{ url_for('inbox_export', format='csv') }}">CSV</a>
+    .</li>
+  <li>
+    {% if is_email_enabled == True %}
+      To disable e-mail please click <a href="{{ url_for('disable_email') }}">here</a>.
+    {% elif  is_email_enabled != True %}
+      To enable e-mail please click <a href="{{ url_for('enable_email') }}">here</a>.
+    {%endif%}
+
+</li>
+
+<li>
+    {% if is_enabled == True %}
+      To disable your account please click <a href="{{ url_for('disable_inbox') }}">here</a>.
+    {% elif  is_enabled != True %}
+      To enable your account please click <a href="{{ url_for('enable_inbox') }}">here</a>.
+    {%endif%}
+</li>
+
+<p><strong>Note:</strong> this website is a work in progress, and these settings will be moved to a separate settings page in the near future. If you'd like to help, send a pull request! :)</p>
+
+
+{% endblock %}

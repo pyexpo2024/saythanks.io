@@ -1,0 +1,126 @@
+{% extends "base.htm.j2" %}
+
+{% block title %}Say Thank You{% endblock %}
+
+{% block extra_head %} 
+    <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
+     <link rel="stylesheet" href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css" />
+{% endblock %}
+
+{% block content %}
+
+
+<form action="../logout" method="POST">
+<button type="submit" class="logoutLblPos" >Log Out</button>
+</form>
+
+<h4>Send a <strong class="green">Thank You</strong> note to <strong>{{ user }}</strong>{{ topic }}!</h4>
+
+
+<form id="thankyou-note-form" class="form-horizontal" action="./{{ user }}/submit" method="post">
+<table>
+<tr>
+<td>
+<label for= "Font Style"> Font Style : </label>
+</td>
+<td>
+<select name="Font Style" id="fontstyle" onchange="fontforinbox(this);" >
+    <option value="0">Regular</option>
+    <option value="1">Times New Roman</option>
+    <option value="2">Verdana</option>
+    <option value="3">Tahoma</option>
+    <option value="4">Georgia</option>  
+    <option value="5">Trebuchet MS</option>
+ </select>
+ </td>
+ <td>
+<label for= "content-type"> Content Type: </label>
+</td>
+ <td>
+ <input type="radio" name="content-type" id="option1" value="markdown" checked> Plain Text / Markdown</input><br>
+ </td>
+ <td>
+<input type="radio" name="content-type" id="option2" value="html"> HTML</input><br>
+</td>
+ </tr>
+ </table>
+
+<fieldset>
+
+<!-- Form Name -->
+<legend>❝ THANK YOU ❞ </legend>
+
+<!-- Textarea -->
+<div class="form-group">
+  <div class="col-md-4">
+    <div id="editor"></div>
+  </div>
+</div>
+
+
+<h6>You have written <strong><span id=counter>0</span></strong> thoughtful words, so far… (shoot for 42!)</h6>
+<!-- Text input-->
+<div class="form-group">
+  <label class="col-md-4 control-label" for="byline">Sincerely, </label>
+  <div class="col-md-4">
+  <input class='notebodyfont' id="byline" class="u-full-width" name="byline" type="text" placeholder="{{ fake_name }}" class="form-control input-md">
+  </div>
+</div>
+
+<!-- Button -->
+<div class="form-group">
+  <label class="col-md-4 control-label" for="submit"></label>
+  <div class="col-md-4">
+    <button id="submit" name="submit" class="btn button-primary" type="submit">Send Note <img id="eve-send" src="{{ url_for('static', filename='images/owly.svg') }}" alt="Eve the Owl"> </button>
+  </div>
+</div>
+<h2>🝐</h2>
+</fieldset>
+</form>
+
+<script>
+  function wordCount(data) {
+    var pattern = /[a-zA-Z0-9_\u0392-\u03c9\u0410-\u04F9]+|[\u4E00-\u9FFF\u3400-\u4dbf\uf900-\ufaff\u3040-\u309f\uac00-\ud7af]+/g;
+    var m = data.match(pattern);
+    var count = 0;
+    if(m === null) return count;
+    for(var i = 0; i < m.length; i++) {
+      if(m[i].charCodeAt(0) >= 0x4E00) {
+        count += m[i].length;
+      } else {
+        count += 1;
+      }
+    }
+    return count;
+  }
+  var counter = document.getElementById("counter");
+
+  var textArea = document.getElementById("editor");
+  const editor = new toastui.Editor({
+        el: textArea,
+        previewStyle: 'tab',
+        height: '500px',
+        initialValue: "Dear {{ user }},\nThank you for..."
+      });
+
+  var form = document.getElementById("thankyou-note-form");
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    var formData = new FormData(form);
+    formData.append('body', editor.getMarkdown());
+    const request = new XMLHttpRequest();
+    request.onreadystatechange = function() {
+        window.location.href = '/thanks';
+}
+    request.open("POST", "./{{ user }}/submit");
+    request.send(formData);
+  })
+
+  editor.addHook('change', () => {
+    counter.innerText = wordCount(editor.getMarkdown());
+  })
+  
+</script>
+
+
+{% endblock %}
